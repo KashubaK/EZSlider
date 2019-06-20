@@ -50,13 +50,19 @@ export default class Slider {
 
     this.addSlideTrack();
     this.listenForSlideTrackEvents();
-    this.listenForWindowResize();
+    this.listenForWindowEvents();
   }
 
-  listenForWindowResize() {
+  listenForWindowEvents() {
     window.addEventListener('resize', (e: UIEvent) => {
       this.calculateSlideWidth(e);
-    })
+    });
+
+    window.addEventListener('mouseout', (e: MouseEvent) => {
+      if (e.toElement == null && e.relatedTarget == null) {
+        this.handleTrackMouseUp(e)
+      }
+    });
   }
 
   calculateSlideWidth(e: UIEvent) {
@@ -79,7 +85,7 @@ export default class Slider {
 
   handleTrackMouseDown(e: MouseEvent) {
     this.status = 'mousedown';
-    console.log(e)
+
     this.setLeftToCurrentTrackPosition();
     this.removeTrackTransition();
   }
