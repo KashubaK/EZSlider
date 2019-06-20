@@ -21,6 +21,7 @@ export default class Slider {
   transitionDuration: number
   transitionTimingFunction: string
   trackTransitionRemovalTimeout: any
+  resizeHandlerTimeout: any
 
   movementX: number
   movementY: number
@@ -49,6 +50,18 @@ export default class Slider {
 
     this.addSlideTrack();
     this.listenForSlideTrackEvents();
+    this.listenForWindowResize();
+  }
+
+  listenForWindowResize() {
+    window.addEventListener('resize', (e: UIEvent) => {
+      this.calculateSlideWidth(e);
+    })
+  }
+
+  calculateSlideWidth(e: UIEvent) {
+    this.slideWidth = this.slides[0].clientWidth;
+    this.handleSlideTrigger();
   }
 
   neutralPositionAtCurrentSlide() {
