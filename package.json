@@ -1,9 +1,10 @@
 {
-  "name": "marquee",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "EZSlider",
+  "version": "0.1.0",
+  "description": "Small, quick and smooth slider written in TypeScript. Zero dependencies, minimal setup.",
+  "main": "dist/ezslider.min.js",
   "scripts": {
+    "build": "webpack --mode=production && webpack --mode=development",
     "start": "webpack-dev-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
