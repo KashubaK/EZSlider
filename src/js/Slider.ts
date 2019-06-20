@@ -1,6 +1,6 @@
 interface SliderProps {
   container: Element
-  triggerThreshold?: number
+  triggerThresholdPercent?: number
   transitionDuration?: number
   transitionTimingFunction?: string
 }
@@ -10,16 +10,22 @@ export default class Slider {
   slides: Element[]
   slideTrack: HTMLDivElement
 
+  mobile: boolean
   status: string
   currentPositionX: number
   currentPositionY: number
   activeSlideIndex: number
-  slideTriggerThreshold: number
+  slideTriggerThresholdPercent: number
   slideWidth: number
   transitionProperty = 'transform'
   transitionDuration: number
   transitionTimingFunction: string
   trackTransitionRemovalTimeout: any
+
+  movementX: number
+  movementY: number
+  previousMouseX: number
+  previousMouseY: number
 
   constructor(opts: SliderProps) {
     this.container = opts.container;
@@ -34,7 +40,12 @@ export default class Slider {
 
     this.transitionDuration = opts.transitionDuration || 600;
     this.transitionTimingFunction = opts.transitionTimingFunction || 'cubic-bezier(0.230, 1.000, 0.320, 1.000)';
-    this.slideTriggerThreshold = opts.triggerThreshold || 200;
+    this.slideTriggerThresholdPercent = opts.triggerThresholdPercent || 10;
+  
+    this.previousMouseX = 0;
+    this.previousMouseY = 0;
+    this.movementX = 0;
+    this.movementY = 0;
 
     this.addSlideTrack();
     this.listenForSlideTrackEvents();
@@ -45,23 +56,32 @@ export default class Slider {
   }
 
   listenForSlideTrackEvents() {
-    this.slideTrack.addEventListener('mousedown', (e: MouseEvent) => this.handleTrackMouseDown(e));
-    this.slideTrack.addEventListener('mouseup', (e: MouseEvent) => this.handleTrackMouseUp(e));
-    this.slideTrack.addEventListener('mousemove', (e: MouseEvent) => this.handleTrackMouseMove(e));
+    this.container.addEventListener('mousedown', (e: MouseEvent) => this.handleTrackMouseDown(e));
+    this.container.addEventListener('touchstart', (e: MouseEvent) => this.handleTrackMouseDown(e));
+    this.container.addEventListener('mouseup', (e: MouseEvent) => this.handleTrackMouseUp(e));
+    this.container.addEventListener('touchend', (e: MouseEvent) => this.handleTrackMouseUp(e));
+    this.container.addEventListener('mousemove', (e: MouseEvent) => this.handleTrackMouseMove(e));
+    this.container.addEventListener('touchmove', (e: MouseEvent) => this.handleTrackMouseMove(e));
   }
 
   handleTrackMouseDown(e: MouseEvent) {
     this.status = 'mousedown';
-
     console.log(e)
     this.setLeftToCurrentTrackPosition();
     this.removeTrackTransition();
   }
 
+  slideTriggerThresholdAsPixels() {
+    return this.slideWidth * (this.slideTriggerThresholdPercent / 100);
+  }
+
   handleTrackMouseUp(e: MouseEvent) {
     this.status = 'mouseup';
 
-    if (Math.abs(this.currentPositionX - this.neutralPositionAtCurrentSlide()) >= this.slideTriggerThreshold) {
+    this.previousMouseX = 0;
+    this.previousMouseY = 0;
+
+    if (Math.abs(this.currentPositionX - this.neutralPositionAtCurrentSlide()) >= this.slideTriggerThresholdAsPixels()) {
       if (this.currentPositionX - this.neutralPositionAtCurrentSlide() > 0) {
         if (this.activeSlideIndex > 0) {
           this.activeSlideIndex--;
@@ -82,6 +102,7 @@ export default class Slider {
     this.setTrackPosition();
 
     clearTimeout(this.trackTransitionRemovalTimeout);
+
     this.trackTransitionRemovalTimeout = setTimeout(() => {
       this.removeTrackTransition();
     }, this.transitionDuration)
@@ -100,11 +121,41 @@ export default class Slider {
     this.slideTrack.style.setProperty('transition', 'none');
   }
 
+  getScreenX(e: MouseEvent) {
+    if (e instanceof TouchEvent) {
+      return e.touches[0].screenX;
+    }
+
+    return e.screenX;
+  }
+
+  getScreenY(e: MouseEvent) {
+    if (e instanceof TouchEvent) {
+      return e.touches[0].screenY;
+    }
+
+    return e.screenY;
+  }
+
+  setMouseMovement(e: MouseEvent) {
+    const screenX = this.getScreenX(e);
+    const screenY = this.getScreenY(e);
+
+    this.movementX = this.previousMouseX != 0 ? screenX - this.previousMouseX : 0;
+    this.movementY = this.previousMouseY != 0 ? screenY - this.previousMouseY : 0;
+
+    this.previousMouseX = screenX;
+    this.previousMouseY = screenY;
+  }
+
   handleTrackMouseMove(e: MouseEvent) {
     if (this.status != 'mousedown') return;
+    if (e instanceof TouchEvent) e.preventDefault();
 
-    this.currentPositionX += e.movementX;
-    this.currentPositionY += e.movementY;
+    this.setMouseMovement(e);
+
+    this.currentPositionX += this.movementX;
+    this.currentPositionY += this.movementY;
 
     this.setTrackPosition();
   }

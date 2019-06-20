@@ -17,13 +17,13 @@ export default class EZSlider {
     const sliders = Array.from(document.querySelectorAll('[data-ez-slider]'));
 
     sliders.forEach(slider => {
-      const triggerThreshold = parseInt(slider.getAttribute('data-ez-threshold'));
+      const triggerThresholdPercent = parseInt(slider.getAttribute('data-ez-threshold'));
       const transitionDuration = parseInt(slider.getAttribute('data-ez-transition-duration'));
       const transitionTimingFunction = slider.getAttribute('data-ez-transition-timing');
       
       const sliderInstance = new Slider({
         container: slider,
-        triggerThreshold,
+        triggerThresholdPercent,
         transitionDuration,
         transitionTimingFunction
       });
