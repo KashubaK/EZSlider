@@ -5,6 +5,11 @@ interface SliderProps {
   transitionTimingFunction?: string
 }
 
+interface SliderEventListeners {
+  slideChange?: Function[]
+  slidePositionChange?: Function[]
+}
+
 export default class Slider {
   container: Element
   slides: Element[]
@@ -30,8 +35,14 @@ export default class Slider {
   previousMouseX: number
   previousMouseY: number
 
+  eventListeners: SliderEventListeners
+  lastReportedTrackPosition: number
+  listeningToTrackPosition: boolean
+  
   constructor(opts: SliderProps) {
     this.container = opts.container;
+    this.container['ezSlider'] = this;
+
     this.slides = Array.from(this.container.children);
     this.slideTrack = this.getSlideTrack();
     this.status = '';
@@ -52,9 +63,85 @@ export default class Slider {
     this.movementX = 0;
     this.movementY = 0;
 
+    this.eventListeners = {
+      slidePositionChange: [],
+      slideChange: []
+    };
+
     this.addSlideTrack();
     this.listenForSlideTrackEvents();
     this.listenForWindowEvents();
+  }
+
+  on(eventName: string, callback: Function) {
+    switch (eventName) {
+      case 'slidePositionChange':
+        this.addSlidePositionChangeListener(callback);
+        break;
+      case 'slideChange':
+        this.addSlideChangeListener(callback);
+        break;
+      default:
+        console.info(`[EZSlider.on] Event '${eventName}' not implemented, defaulting to addEventListener on container`)
+        this.container.addEventListener(eventName, callback as EventListener);
+        break;
+    }
+  }
+
+  addSlideChangeListener(callback: Function) {
+    this.eventListeners.slideChange.push(callback);
+  }
+
+  fireEventListeners(eventName: string, data) {
+    this.eventListeners[eventName].forEach(callback => callback(data));
+  }
+ 
+  addSlidePositionChangeListener(callback: Function) {
+    this.eventListeners.slidePositionChange.push(callback);
+    if (this.listeningToTrackPosition) return;
+
+    this.listeningToTrackPosition = true;
+
+    const tick = () => {
+      const trackPosition = this.getTrackLeftPosition() - this.neutralPositionAtCurrentSlide();
+
+      window.requestAnimationFrame(() => {
+        if (this.lastReportedTrackPosition !== trackPosition) {
+          this.lastReportedTrackPosition = trackPosition;
+          this.fireEventListeners('slidePositionChange', this.lastReportedTrackPosition);
+        }
+      });
+
+      window.requestAnimationFrame(tick);
+    }
+
+    tick();
+  }
+
+  setCurrentSlide(slideIndex: number) {
+    if (!this.slides[slideIndex]) throw new Error(`[EZSlider.setCurrentSlide] Cannot find slide using provided slideIndex '${slideIndex}'`);
+
+    this.activeSlideIndex = slideIndex;
+    this.handleSlideTrigger();
+    this.fireEventListeners('slideChange', this.activeSlideIndex);
+  }
+
+  nextSlide() {
+    if (this.activeSlideIndex + 1 != this.slides.length) {
+      this.setCurrentSlide(this.activeSlideIndex + 1);
+      this.handleSlideTrigger();
+    } else {
+      console.warn('[EZSlider.nextSlide] nextSlide called when already at last slide');
+    }
+  }
+
+  previousSlide() {
+    if (this.activeSlideIndex > 0) {
+      this.setCurrentSlide(this.activeSlideIndex - 1);
+      this.handleSlideTrigger();
+    } else {
+      console.warn('[EZSlider.previousSlide] previousSlide called when already at first slide');
+    }
   }
 
   listenForWindowEvents() {
@@ -74,7 +161,7 @@ export default class Slider {
     this.handleSlideTrigger();
   }
 
-  neutralPositionAtCurrentSlide() {
+  neutralPositionAtCurrentSlide(): number {
     return this.slideWidth * -this.activeSlideIndex;
   }
 
@@ -94,15 +181,15 @@ export default class Slider {
     this.removeTrackTransition();
   }
 
-  slideTriggerThresholdAsPixels() {
+  slideTriggerThresholdAsPixels(): number {
     return this.slideWidth * (this.slideTriggerThresholdPercent / 100);
   }
   
-  getActiveDirection() {
+  getActiveDirection(): string {
     return this.currentPositionX - this.neutralPositionAtCurrentSlide() > 0 ? 'right' : 'left';
   }
 
-  hasDraggedPastTriggerThreshold() {
+  hasDraggedPastTriggerThreshold(): boolean {
     const triggerThresholdAsPixels = this.slideTriggerThresholdAsPixels();
 
     return Math.abs(this.mouseDraggedX) > triggerThresholdAsPixels && Math.abs(this.currentPositionX - this.neutralPositionAtCurrentSlide()) >= triggerThresholdAsPixels;
@@ -116,13 +203,9 @@ export default class Slider {
 
     if (this.hasDraggedPastTriggerThreshold()) {
       if (this.getActiveDirection() == 'right') {
-        if (this.activeSlideIndex > 0) {
-          this.activeSlideIndex--;
-        }
-      } else {  
-        if (this.getActiveDirection() == 'left') {
-          this.activeSlideIndex++;
-        }
+        this.previousSlide();
+      } else if (this.getActiveDirection() == 'left') {  
+        this.nextSlide();
       }
     }
 
@@ -144,8 +227,12 @@ export default class Slider {
     }, this.transitionDuration)
   }
 
+  getTrackLeftPosition(): number {
+    return this.slideTrack.getBoundingClientRect().left;
+  }
+
   setLeftToCurrentTrackPosition() {
-    this.currentPositionX = this.slideTrack.getBoundingClientRect().left;
+    this.currentPositionX = this.getTrackLeftPosition();
     this.setTrackPosition();
   }
 
@@ -157,7 +244,7 @@ export default class Slider {
     this.slideTrack.style.setProperty('transition', 'none');
   }
 
-  getScreenX(e: MouseEvent) {
+  getScreenX(e: MouseEvent): number {
     if (e instanceof TouchEvent) {
       return e.touches[0].screenX;
     }
@@ -165,7 +252,7 @@ export default class Slider {
     return e.screenX;
   }
 
-  getScreenY(e: MouseEvent) {
+  getScreenY(e: MouseEvent): number {
     if (e instanceof TouchEvent) {
       return e.touches[0].screenY;
     }
