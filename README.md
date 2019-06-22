@@ -1,5 +1,7 @@
 # EZSlider
 
+[NPM](https://www.npmjs.com/package/@kashuab/ez-slider)
+
 Zero-dependencies, smooth animations, easy usage. All written in TypeScript.
 
 **This project is currently in an experimental stage. Expect breaking changes to occur frequently.**
