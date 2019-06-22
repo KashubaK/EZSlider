@@ -2,6 +2,8 @@
 
 Zero-dependencies, smooth animations, easy usage. All written in TypeScript.
 
+**This project is currently in an experimental stage. Expect breaking changes to occur frequently.**
+
 ## Installation
 
 Currently, we only support installing the node module:
