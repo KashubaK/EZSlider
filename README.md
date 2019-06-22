@@ -6,7 +6,7 @@ Zero-dependencies, smooth animations, easy usage. All written in TypeScript.
 
 Currently, we only support installing the node module:
 
-`npm install --save ez-slider`
+`npm install @kashuab/ez-slider`
 
 ### Usage
 
@@ -23,7 +23,7 @@ Add `data-ez-slider` to the parent element of your slides:
 In your JS:
 
 ```javascript
-import EZSlider from 'ez-slider';
+import '@kashuab/ez-slider';
 
 const ezSlider = new EZSlider();
 ```

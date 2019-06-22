@@ -6,3 +6,5 @@ export {
 }
 
 export default EZSlider;
+
+globalThis.EZSlider = EZSlider;
