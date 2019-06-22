@@ -30,6 +30,6 @@ import '@kashuab/ez-slider';
 const ezSlider = new EZSlider();
 ```
 
-The `EZSlider` class will look for elements with the `data-ez-slider` attribute and attach to them.
+The `EZSlider` class will look for elements with the `data-ez-slider` attribute and attach to them. It expects the slides to be the same exact width, and it will stretch to fit its container.
 
 All done!
