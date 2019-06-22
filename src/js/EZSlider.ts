@@ -1,19 +1,19 @@
 import Slider from './Slider';
 
 interface EZSliderProps {
-  
+  manualInit?: boolean
 }
 
 export default class EZSlider {
   sliders: Slider[]
 
-  constructor(opts: EZSliderProps) {
+  constructor(opts?: EZSliderProps) {
     this.sliders = [];
 
-    this.initSliders();
+    this.init();
   }
 
-  initSliders(): void {
+  init(): void {
     const sliders = Array.from(document.querySelectorAll('[data-ez-slider]'));
 
     sliders.forEach(slider => {
