@@ -23,6 +23,8 @@ export default class Slider {
   trackTransitionRemovalTimeout: any
   resizeHandlerTimeout: any
 
+  mouseDraggedX: number
+  mouseDraggedY: number
   movementX: number
   movementY: number
   previousMouseX: number
@@ -35,6 +37,8 @@ export default class Slider {
     this.status = '';
     this.slideWidth = this.slides[0].clientWidth;
 
+    this.mouseDraggedX = 0;
+    this.mouseDraggedY = 0;
     this.currentPositionX = 0;
     this.currentPositionY = 0;
     this.activeSlideIndex = 0;
@@ -55,17 +59,17 @@ export default class Slider {
 
   listenForWindowEvents() {
     window.addEventListener('resize', (e: UIEvent) => {
-      this.calculateSlideWidth(e);
+      this.calculateSlideWidth();
     });
 
     window.addEventListener('mouseout', (e: MouseEvent) => {
       if (e.toElement == null && e.relatedTarget == null) {
-        this.handleTrackMouseUp(e)
+        this.handleTrackMouseUp(e);
       }
     });
   }
 
-  calculateSlideWidth(e: UIEvent) {
+  calculateSlideWidth() {
     this.slideWidth = this.slides[0].clientWidth;
     this.handleSlideTrigger();
   }
@@ -93,6 +97,16 @@ export default class Slider {
   slideTriggerThresholdAsPixels() {
     return this.slideWidth * (this.slideTriggerThresholdPercent / 100);
   }
+  
+  getActiveDirection() {
+    return this.currentPositionX - this.neutralPositionAtCurrentSlide() > 0 ? 'right' : 'left';
+  }
+
+  hasDraggedPastTriggerThreshold() {
+    const triggerThresholdAsPixels = this.slideTriggerThresholdAsPixels();
+
+    return Math.abs(this.mouseDraggedX) > triggerThresholdAsPixels && Math.abs(this.currentPositionX - this.neutralPositionAtCurrentSlide()) >= triggerThresholdAsPixels;
+  }
 
   handleTrackMouseUp(e: MouseEvent) {
     this.status = 'mouseup';
@@ -100,17 +114,20 @@ export default class Slider {
     this.previousMouseX = 0;
     this.previousMouseY = 0;
 
-    if (Math.abs(this.currentPositionX - this.neutralPositionAtCurrentSlide()) >= this.slideTriggerThresholdAsPixels()) {
-      if (this.currentPositionX - this.neutralPositionAtCurrentSlide() > 0) {
+    if (this.hasDraggedPastTriggerThreshold()) {
+      if (this.getActiveDirection() == 'right') {
         if (this.activeSlideIndex > 0) {
           this.activeSlideIndex--;
         }
       } else {  
-        if (this.activeSlideIndex + 1 < this.slides.length) {
+        if (this.getActiveDirection() == 'left') {
           this.activeSlideIndex++;
         }
       }
     }
+
+    this.mouseDraggedX = 0;
+    this.mouseDraggedY = 0;
 
     this.handleSlideTrigger();
   }
@@ -173,6 +190,8 @@ export default class Slider {
 
     this.setMouseMovement(e);
 
+    this.mouseDraggedX += this.movementX;
+    this.mouseDraggedY += this.movementY;
     this.currentPositionX += this.movementX;
     this.currentPositionY += this.movementY;
 

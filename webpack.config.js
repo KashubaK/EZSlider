@@ -1,12 +1,12 @@
-const webpack = require('webpack');
 const path = require('path');
 const { NODE_ENV } = process.env;
+
 
 const config = {
   entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: NODE_ENV == 'development' ? 'ezslider.js' : 'ezslider.min.js'
+    filename: NODE_ENV == 'production' ? 'ezslider.min.js' : 'ezslider.js'
   },
   module: {
     rules: [

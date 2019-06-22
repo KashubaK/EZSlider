@@ -1,11 +1,11 @@
 {
-  "name": "EZSlider",
+  "name": "ez-slider",
   "version": "0.1.0",
   "description": "Small, quick and smooth slider written in TypeScript. Zero dependencies, minimal setup.",
   "main": "dist/ezslider.min.js",
   "scripts": {
     "build": "webpack --mode=production && webpack --mode=development",
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --progress --colors --inline --hot --open",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
