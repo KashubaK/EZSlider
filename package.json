@@ -2,14 +2,19 @@
   "name": "ez-slider",
   "version": "0.1.0",
   "description": "Small, quick and smooth slider written in TypeScript. Zero dependencies, minimal setup.",
+  "keywords": ["slider", "typescript", "es6", "ts"],
   "main": "dist/ezslider.js",
+  "homepage": "https://github.com/KashubaK/EZSlider",
+  "bugs": {
+    "url": "https://github.com/KashubaK/EZSlider/issues"
+  },
   "scripts": {
     "build": "webpack --mode=production && webpack --mode=development",
     "start": "webpack-dev-server --progress --colors --inline --hot --open",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Kyle Kashuba",
+  "license": "MIT",
   "dependencies": {
     "css-loader": "^3.0.0",
     "node-sass": "^4.12.0",
